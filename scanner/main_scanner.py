@@ -2,8 +2,9 @@ import requests
 from scanner.header_scanner import check_security_headers
 from scanner.file_scanner import check_sensitive_files
 from scanner.content_scanner import check_page_content
+from scanner.sqli_scanner import check_sql_injection
 
-def run_scan(target_url):
+def run_scan(target_url, perform_active_scan=False):
     findings = {}
 
     try:
@@ -23,6 +24,9 @@ def run_scan(target_url):
             findings.update(file_findings)
 
             findings.update(check_page_content(target_url))
+
+            if perform_active_scan:
+                findings.update(check_sql_injection(target_url))
 
         else:
             findings['connection_status'] = {
