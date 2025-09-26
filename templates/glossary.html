@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Glossary - SentryScan{% endblock %}
+
+{% block history %}
+    {% for scan in scans %}
+    <li class="nav-item">
+        <a href="/scan/{{ scan.id }}" class="nav-link text-white">
+            {{ scan.target_url | truncate(20) }}
+        </a>
+    </li>
+    {% else %}
+    <li class="nav-item"><span class="nav-link text-muted">No history found.</span></li>
+    {% endfor %}
+{% endblock %}
+
+{% block content %}
+    <h1>Glossary of Terms 📖</h1>
+    <p class="lead">Understand what your scan results mean and what actions to take.</p>
+
+    <div class="accordion mt-4" id="glossaryAccordion">
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMissing">
+                    Status: Missing (High Severity 🔴)
+                </button>
+            </h2>
+            <div id="collapseMissing" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                    <strong>What it Means:</strong> Your website's server did not send a specific security instruction (a "header") to the browser.<br><br>
+                    <strong>Why it Matters:</strong> It's like leaving a security door unlocked. You're missing a simple, powerful layer of protection against common attacks.<br><br>
+                    <strong>How to Fix It:</strong> Add a line of configuration to your web server (like Nginx or Apache) to include the missing header in all responses.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExposed">
+                    Status: Exposed (Informational 🔵)
+                </button>
+            </h2>
+            <div id="collapseExposed" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                    <strong>What it Means:</strong> Your server is publicly announcing the specific software it's running (e.g., 'Nginx 1.18').<br><br>
+                    <strong>Why it Matters:</strong> This is like giving potential attackers a blueprint of your security setup. If a vulnerability is discovered for that version, they know you are a target.<br><br>
+                    <strong>How to Fix It:</strong> Configure your web server to hide this information. This is a good practice known as "security through obscurity."
+                </div>
+            </div>
+        </div>
+        
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVulnerable">
+                    Status: Vulnerable (High Severity 🔴)
+                </button>
+            </h2>
+            <div id="collapseVulnerable" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div class="accordion-body">
+                    <strong>What it Means:</strong> The scanner tricked the application into revealing a database error. This strongly suggests that an attacker could manipulate your database.<br><br>
+                    <strong>Why it Matters:</strong> This is a critical vulnerability. An attacker could potentially steal, modify, or delete all of your data, including user information.<br><br>
+                    <strong>How to Fix It:</strong> This must be fixed in the application's code by using "parameterized queries" or "prepared statements" to handle all user input.
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
