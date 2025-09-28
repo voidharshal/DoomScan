@@ -54,26 +54,41 @@ def about():
 @app.route('/scan/<int:scan_id>')
 def view_scan(scan_id):
     """Displays the results of a specific past scan."""
-    scans = get_scan_history() # For the sidebar
-    scan_details = {}
+    scans = get_scan_history()
+    # Define default values to prevent UndefinedError
+    url = None
+    findings = {}
+    findings_str = ''
+    
+    db = None
     try:
-        db = mysql.connector.connect(host=os.getenv('DB_HOST'), user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), database=os.getenv('DB_NAME'))
-        cursor = db.cursor(dictionary=True)
-        cursor.execute("SELECT target_url, findings FROM scan_results WHERE id = %s", (scan_id,))
-        result = cursor.fetchone()
+        if os.getenv('FLASK_ENV') == 'development':
+            # --- Local MySQL Connection ---
+            db = mysql.connector.connect(host=os.getenv('DB_HOST'), user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), database=os.getenv('DB_NAME'))
+            cursor = db.cursor(dictionary=True)
+            cursor.execute("SELECT target_url, findings FROM scan_results WHERE id = %s", (scan_id,))
+            result = cursor.fetchone()
+        else:
+            # --- Deployed PostgreSQL Connection ---
+            db_url = os.getenv('DATABASE_URL')
+            result_url = urlparse(db_url)
+            db = psycopg2.connect(dbname=result_url.path[1:], user=result_url.username, password=result_url.password, host=result_url.hostname)
+            cursor = db.cursor(cursor_factory=DictCursor)
+            cursor.execute("SELECT target_url, findings FROM scan_results WHERE id = %s", (scan_id,))
+            result = cursor.fetchone()
+
         if result:
-            scan_details['url'] = result['target_url']
-            scan_details['findings'] = json.loads(result['findings'])
-            scan_details['findings_str'] = serializer.dumps(scan_details['findings'])
+            url = result['target_url']
+            findings = json.loads(result['findings'])
+            findings_str = serializer.dumps(findings)
+        
         cursor.close()
         db.close()
-    except mysql.connector.Error as err:
+    except Exception as err:
         print(f"Database Error: {err}")
     
-    return render_template('results.html', scans=scans, **scan_details)
+    return render_template('results.html', scans=scans, url=url, findings=findings, findings_str=findings_str)
 
-# --- Your existing scan and download routes remain below ---
-# Note: You can now delete the old @app.route('/history') as it's no longer needed.
 
 @app.route('/scan', methods=['POST'])
 def scan_passive():
