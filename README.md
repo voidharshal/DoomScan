@@ -51,7 +51,6 @@ It allows users to perform quick reconnaissance on websites, checking for open p
     http://127.0.0.1:5000/
 
 ## Project structure
-    ```bash
     DoomScan/
     │  app.py
     │  requirements.txt
